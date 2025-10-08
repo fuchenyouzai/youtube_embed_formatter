@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>悠哉 YouTube 链接格式化工具TG @fuchenyouzibot</title>
+<style>
+  body { font-family: "Segoe UI", system-ui; background:#0f172a; color:#e2e8f0; display:flex; flex-direction:column; align-items:center; min-height:100vh; margin:0; padding:20px;}
+  h1{color:#38bdf8;margin-bottom:10px;}
+  p{color:#94a3b8;margin-bottom:12px;}
+  input{width:90%;max-width:500px;padding:10px;font-size:16px;border:2px solid #38bdf8;border-radius:8px;background:#1e293b;color:#e2e8f0;outline:none;}
+  button{margin-top:12px;padding:10px 20px;font-size:16px;background:#38bdf8;border:none;border-radius:8px;color:#0f172a;cursor:pointer;font-weight:bold; transition: background 0.3s;}
+  button:hover{background:#0ea5e9;}
+  #output{margin-top:20px;width:100%;max-width:760px;}
+  iframe{width:100%;height:420px;border-radius:10px;border:none;margin-top:10px;background:black;}
+  #embedCode{margin-top:10px;background:#1e293b;padding:10px;border-radius:8px;font-family:monospace;color:#94a3b8;user-select:all;word-break:break-all; white-space:pre-wrap;}
+  .note{margin-top:8px;color:#fbbf24;}
+  .error{color:#f87171;}
+  .small{font-size:13px;color:#94a3b8;margin-top:6px;}
+  .btn-group{margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;}
+</style>
+</head>
+<body>
+  <h1>悠哉 YouTube 链接格式化器 TG @fuchenyouzibot</h1>
+  <p>输入任意 YouTube 视频或直播链接（watch、youtu.be、shorts、live 等），自动生成可嵌入的 iframe 播放代码。</p>
+
+<iframe 
+  loading="lazy" 
+  src="https://www.youtube.com/embed/fN9uYWCjQaw?playsinline=1&rel=0&modestbranding=1&autoplay=1&mute=1" 
+  title="YouTube 视频 fN9uYWCjQaw" 
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  allowfullscreen 
+  playsinline>
+</iframe>
+
+<h1>复制下方测试链接填入输入框后点生成按钮     https://www.youtube.com/live/fN9uYWCjQaw?si=fDvKr_SQkwhYXoqb</h1>
+
+
+  <input id="ytInput" type="text" placeholder="例如：https://www.youtube.com/watch?v=WbW00ghKFt0">
+  <div class="btn-group">
+    <button onclick="formatYouTube()">生成嵌入代码</button>
+    <button onclick="clearAll()">清除内容</button>
+    <button onclick="copyEmbedCode()">复制 iframe 代码</button>
+  </div>
+
+  <div id="output"></div>
+
+<script>
+function extractYouTubeID(url) {
+  if (!url) return null;
+  url = url.trim();
+  let m;
+  m = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/); if(m) return m[1];
+  m = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/); if(m) return m[1];
+  m = url.match(/\/embed\/([a-zA-Z0-9_-]{11})/); if(m) return m[1];
+  m = url.match(/\/shorts\/([a-zA-Z0-9_-]{11})/); if(m) return m[1];
+  m = url.match(/\/live\/([a-zA-Z0-9_-]{11})/); if(m) return m[1];
+  m = url.match(/([a-zA-Z0-9_-]{11})/); if(m) return m[1];
+  return null;
+}
+
+function formatYouTube() {
+  const input = document.getElementById('ytInput').value.trim();
+  const output = document.getElementById('output');
+  output.innerHTML = '';
+  if (!input) {
+    output.innerHTML = "<p class='error'>⚠️ 请输入 YouTube 链接。</p>";
+    return;
+  }
+  const id = extractYouTubeID(input);
+  if (!id) {
+    output.innerHTML = "<p class='error'>⚠️ 无法识别视频 ID，请检查链接格式（支持 watch、youtu.be、shorts、embed、live 等）。</p>";
+    return;
+  }
+
+  const embedUrl = `https://www.youtube.com/embed/${id}?playsinline=1&rel=0&modestbranding=1`;
+  const iframeCode = `<iframe loading="lazy" src="${embedUrl}" title="YouTube 视频 ${id}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen playsinline></iframe>`;
+
+  // 保存原始 HTML 供复制使用
+  const embedCodeRaw = iframeCode;
+
+  // 显示
+  output.innerHTML = `
+    <p>✅ 识别到视频 ID：<strong>${id}</strong></p>
+    ${iframeCode}
+    <div id="embedCode" data-raw="${encodeURIComponent(embedCodeRaw)}">${iframeCode.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    <div class="small">提示：如果 iframe 内出现 "Playback on other websites has been disabled by the video owner" 或提示需登录，则该视频不允许嵌入或受限制。请尝试下方示例视频排查。</div>
+    <div class="note">测试用例（可直接复制到输入框测试）：<br>
+      悠哉 telegram   https://t.me/fuchenyouzibot（YouTube 示例视频，通常可嵌入）<br>
+      https://www.youtube.com/live/fN9uYWCjQaw?si=fDvKr_SQkwhYXoqb（凤凰卫视直播示例）</div>
+  `;
+}
+
+// 清除输入和输出
+function clearAll() {
+  document.getElementById('ytInput').value = '';
+  document.getElementById('output').innerHTML = '';
+}
+
+// 兼容性复制函数（手机/HTTP 页面也可用）
+function copyEmbedCode() {
+  const codeEl = document.getElementById('embedCode');
+  if (!codeEl) {
+    alert('⚠️ 还没有生成任何代码');
+    return;
+  }
+  const raw = codeEl.dataset.raw;
+  if (!raw) {
+    alert('⚠️ 没有可复制的代码');
+    return;
+  }
+  const text = decodeURIComponent(raw);
+
+  // 使用临时 textarea 来复制
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  document.body.appendChild(textarea);
+  textarea.select();
+  textarea.setSelectionRange(0, 99999); // 手机端支持
+
+  try {
+    const successful = document.execCommand('copy');
+    if (successful) {
+      alert('✅ iframe 代码已复制到剪贴板');
+    } else {
+      alert('⚠️ 复制失败，请手动复制');
+    }
+  } catch (err) {
+    alert('⚠️ 复制失败，请手动复制');
+  }
+  document.body.removeChild(textarea);
+}
+</script>
+</body>
+</html>
