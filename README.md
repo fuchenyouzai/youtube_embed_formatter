@@ -1,2 +1,4 @@
 # youtube_embed_formatter
 youtube_embed_formatter悠哉链接格式化
+
+输入链接自动格式化链接
